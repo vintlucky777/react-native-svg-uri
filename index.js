@@ -18,7 +18,8 @@ import Svg,{
     Text,
     TSpan,
     Defs,
-    Stop
+    Stop,
+    Use,
 } from 'react-native-svg';
 
 import * as utils from './utils';
@@ -38,12 +39,13 @@ const ACCEPTED_SVG_ELEMENTS = [
   'polygon',
   'polyline',
   'text',
-  'tspan'
+  'tspan',
+  'use',
 ];
 
 // Attributes from SVG elements that are mapped directly.
 const SVG_ATTS = ['viewBox', 'width', 'height'];
-const G_ATTS = ['id'];
+const G_ATTS = [];
 
 const CIRCLE_ATTS = ['cx', 'cy', 'r'];
 const PATH_ATTS = ['d'];
@@ -53,15 +55,16 @@ const LINEARG_ATTS = LINE_ATTS.concat(['id', 'gradientUnits']);
 const RADIALG_ATTS = CIRCLE_ATTS.concat(['id', 'gradientUnits']);
 const STOP_ATTS = ['offset'];
 const ELLIPSE_ATTS = ['cx', 'cy', 'rx', 'ry'];
+const USE_ATTS = ['xlink:href', 'href'];
 
 const TEXT_ATTS = ['fontFamily', 'fontSize', 'fontWeight']
 
 const POLYGON_ATTS = ['points'];
 const POLYLINE_ATTS = ['points'];
 
-const COMMON_ATTS = ['fill', 'fillOpacity', 'stroke', 'strokeWidth', 'strokeOpacity', 'opacity',
+const COMMON_ATTS = ['fill', 'fillOpacity', 'fill-opacity', 'stroke', 'strokeWidth', 'strokeOpacity', 'opacity',
     'strokeLinecap', 'strokeLinejoin',
-    'strokeDasharray', 'strokeDashoffset', 'x', 'y', 'rotate', 'scale', 'origin', 'originX', 'originY'];
+    'strokeDasharray', 'strokeDashoffset', 'x', 'y', 'rotate', 'scale', 'origin', 'originX', 'originY', 'id'];
 
 let ind = 0;
 
@@ -140,13 +143,13 @@ class SvgUri extends Component{
 
     return responseXML;
   }
-   
-  // Remove empty strings from children array  
+
+  // Remove empty strings from children array
   trimElementChilden(children) {
     for (child of children) {
       if (typeof child === 'string') {
         if (child.trim.length === 0)
-          children.splice(children.indexOf(child), 1); 
+          children.splice(children.indexOf(child), 1);
       }
     }
   }
@@ -183,6 +186,11 @@ class SvgUri extends Component{
       return <Line key={i} {...componentAtts}>{childs}</Line>;
     case 'defs':
       return <Defs key={i}>{childs}</Defs>;
+    case 'use':
+      componentAtts = this.obtainComponentAtts(node, USE_ATTS);
+      if (undefined !== componentAtts['xlink:href']) //react-native-svg may not know about xlink
+        componentAtts.href = componentAtts['xlink:href'];
+      return <Use key={i} {...componentAtts} />;
     case 'linearGradient':
       componentAtts = this.obtainComponentAtts(node, LINEARG_ATTS);
       return <LinearGradient key={i} {...componentAtts}>{childs}</LinearGradient>;
